@@ -3,7 +3,6 @@ import json
 import logging
 from pathlib import Path
 import shutil
-import sys
 from time import sleep
 import requests
 
@@ -84,14 +83,10 @@ class Scraper:
             with open(file_name, "w", encoding='utf8') as file:
                 json.dump(response_content, file, ensure_ascii=False)
 
-            try:
+            if '/tags/' in base_url:
+                max_id = response_content['data']['recent'].get('next_max_id')
+            elif '/locations/' in base_url:
                 max_id = response_content['graphql'][self._api_endpoint][f'edge_{self._api_endpoint}_to_media']['page_info']['end_cursor']
-            except KeyError as error:
-                e = f'KeyError: {error}'
-                msg = f'Possible reason: make sure you are quering the {self._api_endpoint} endpoint with the proper url.'
-                logging.info(e, msg)
-                print(e, msg)
-                sys.exit(1)
 
             if not max_id or max_id is None:
                 break
