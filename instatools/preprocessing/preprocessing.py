@@ -21,6 +21,13 @@ class Posts:
         self.df = pd.DataFrame.from_dict(self.posts, orient='index')
         return self
 
+    def set_custom_categories(self, file_path, name='categories'):
+        categories_mapping = self._load_custom_categories(file_path)
+        for post in self.posts:
+            hashtags = self.posts[post].get('hashtags')
+            self.posts[post][name] = self._tags_to_categories(
+                categories_mapping, hashtags) if hashtags else None
+
     def popular_categories(self, category, pct=True):
         if self.df is None:
             self.to_df()
@@ -37,6 +44,14 @@ class Posts:
             return df_wide.count(0), len(self.df)
 
     @classmethod
+    def _load_custom_categories(cls, file_path):
+        with open(file_path, 'r') as file:
+            reader = csv.reader(file)
+            next(reader)
+            categories = {rows[0]: rows[1].replace(' ', '').split(',') for rows in reader}
+            return categories
+
+    @classmethod
     def _extract_edges_from_json(cls, file_name):
         with open(file_name) as file:
             data = json.load(file)
@@ -47,15 +62,16 @@ class Posts:
             return data['graphql']['hashtag']['edge_hashtag_to_media']['edges']
 
     @classmethod
-    def _tags_to_categories(cls, topics, hashtags):
+    def _tags_to_categories(cls, custom_categories, hashtags):
 
         categories = []
-        for name, topic_list in topics.items():
-            for tag in hashtags:
-                if tag in topic_list:
-                    categories.append(name)
-                    break
-        return categories
+        if custom_categories and hashtags:
+            for name, categories_lst in custom_categories.items():
+                for tag in hashtags:
+                    if tag in categories_lst:
+                        categories.append(name)
+                        break
+        return categories if categories else None
 
     @classmethod
     def _extract_post(cls, node):
@@ -75,8 +91,7 @@ class Posts:
             text = ''
 
         hashtags = [tag.lower() for tag in re.findall('#[^#\\s]+', text) if tag[1:].isalnum()]
-        categories = cls._tags_to_categories(topics, hashtags)
-        outdoor_categories = cls._tags_to_categories(outdoor_topics, hashtags)
+        hashtags = hashtags if hashtags else None
 
         id = id
         record = {
@@ -88,9 +103,7 @@ class Posts:
             'display_url': display_url,
             'caption': caption,
             'text': text,
-            'hashtags': hashtags,
-            'categories': categories,
-            'outdoor_act': outdoor_categories
+            'hashtags': hashtags
         }
 
         return id, record
