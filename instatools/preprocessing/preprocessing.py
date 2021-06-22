@@ -83,11 +83,15 @@ class Posts:
                     for value, count in most_common]
         return most_common
 
-    def popular_hashtags(self, n=10):
+    def popular_hashtags(self, n=10, pct=False):
         if not self.hashes:
             self.to_hashes()
         hash_list = [item for sublist in self.hashes for item in sublist]
+
         most_common = Counter(hash_list).most_common(n)
+        if pct:
+            return [(value, round((count / len(self.posts)) * 100, 2))
+                    for value, count in most_common]
         return most_common
 
 

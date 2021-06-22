@@ -8,13 +8,6 @@ from gensim.models.ldamodel import LdaModel
 import pyLDAvis.gensim_models
 
 
-def most_common_hashtags(hashes, number):
-
-    hash_list = [item for sublist in hashes for item in sublist]
-    most_common = Counter(hash_list).most_common(number)
-    return most_common
-
-
 def generate_lda_viz(hashes, output_file='topics.html', num_topics=5, passes=50):
 
     dictionary = corpora.Dictionary(hashes)
