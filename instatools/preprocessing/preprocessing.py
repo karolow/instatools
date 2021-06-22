@@ -1,3 +1,4 @@
+from collections import Counter
 import csv
 from datetime import datetime
 import json
@@ -72,19 +73,22 @@ class Posts:
         return categories if categories else None
 
     def popular_categories(self, category='categories', pct=True):
-        if self.df is None:
-            self.to_df()
 
-        df_raw = self.df
-        df_exploded = df_raw.explode(category)
-        df_exploded['_helper'] = 1
-        df_exploded = df_exploded.loc[:, [category, '_helper']]
-        df_wide = df_exploded.pivot(columns=category, values='_helper')
-        df_wide.drop(np.nan, axis=1, inplace=True)
+        categories = [
+            v['categories'] for k, v in self.posts.items() if v['categories']]
+        categories_list = [item for sublist in categories for item in sublist]
+        most_common = Counter(categories_list).most_common()
         if pct:
-            return round(df_wide.count(0) / len(self.df) * 100, 1).sort_values(ascending=False)
-        else:
-            return df_wide.count(0), len(self.df)
+            return [(value, round((count / len(self.posts)) * 100, 2))
+                    for value, count in most_common]
+        return most_common
+
+    def popular_hashtags(self, n=10):
+        if not self.hashes:
+            self.to_hashes()
+        hash_list = [item for sublist in self.hashes for item in sublist]
+        most_common = Counter(hash_list).most_common(n)
+        return most_common
 
 
 class HashtagPosts(Posts):
