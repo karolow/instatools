@@ -1,3 +1,4 @@
 from .preprocessing import (
-    Posts,
+    HashtagPosts,
+    LocationPosts
 )
