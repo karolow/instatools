@@ -4,7 +4,6 @@ from datetime import datetime
 import json
 from pathlib import Path
 import re
-import numpy as np
 import pandas as pd
 
 
@@ -41,6 +40,21 @@ class Posts:
                 posts.setdefault(id, content)
 
         return cls(posts)
+
+    def _detect_junk_tags(self, hashtags, to_detect):
+        return any([tag in hashtags for tag in to_detect if hashtags])
+
+    def remove_posts(self, file_path):
+        try:
+            with open(file_path, 'r') as file:
+                junk_hashtags = file.read().replace(' ', '').split(',')
+        except FileNotFoundError:
+            print(f'{file_path} file does not exist')
+        print(junk_hashtags)
+
+        posts = {id: post for id, post in self.posts.items(
+        ) if not self._detect_junk_tags(post['hashtags'], junk_hashtags)}
+        return Posts(posts)
 
     def set_custom_categories(self, file_path, name='categories'):
         categories_mapping = self._load_custom_categories(file_path)
