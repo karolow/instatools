@@ -86,7 +86,7 @@ class Scraper:
             if '/tags/' in base_url:
                 max_id = response_content['data']['recent'].get('next_max_id')
             elif '/locations/' in base_url:
-                max_id = response_content['graphql'][self._api_endpoint][f'edge_{self._api_endpoint}_to_media']['page_info']['end_cursor']
+                max_id = response_content['native_location_data']['recent'].get('next_max_id')
 
             if not max_id or max_id is None:
                 break
