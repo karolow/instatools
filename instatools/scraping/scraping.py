@@ -108,7 +108,7 @@ class Scraper:
         except Exception:
             logging.info(f'API Response, filename: {file_name}', exc_info=True)
 
-        file_path = Path(self.session_path, 'images', file_name + '.jpg')
+        file_path = Path(self.session_path, 'images', str(file_name) + '.jpg')
         with open(file_path, 'wb') as file:
             shutil.copyfileobj(response.raw, file)
 
