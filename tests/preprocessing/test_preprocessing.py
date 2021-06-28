@@ -1,4 +1,5 @@
 from instatools.preprocessing.preprocessing import (
+    Posts,
     HashtagPosts,
     LocationPosts
 )
@@ -44,6 +45,23 @@ class ParseFromMultipleJsonFilesTests:
 
 class RemovePostsTests:
 
-    def test_for_hashtag_endpoint(self):
+    def test_detect_junk_hashtags(self):
+        hashtags = ['#foo', '#bar']
+        assert Posts._detect_junk_hashtags(hashtags, ['#foo']) is True
+        assert Posts._detect_junk_hashtags(hashtags, ['#baz']) is False
 
-    def test_for_location_endpoint(self)
+    def test_for_hashtag_endpoint(self, multiple_hashtag_json):
+        path, posts = multiple_hashtag_json
+        hp = HashtagPosts(posts)
+        junk_hashtags = ['#medialabkatowice']
+        hp_filtered = hp.remove_posts(junk_hashtags)
+        assert any([any([hashtag in v['hashtags'] for hashtag in junk_hashtags])
+                    for k, v in hp_filtered.posts.items() if v['hashtags']]) is False
+
+    def test_for_location_endpoint(self, multiple_location_json):
+        path, posts = multiple_location_json
+        lp = LocationPosts(posts)
+        junk_hashtags = ['#park', '#sunday']
+        lp_filtered = lp.remove_posts(junk_hashtags)
+        assert any([any([hashtag in v['hashtags'] for hashtag in junk_hashtags])
+                    for k, v in lp_filtered.posts.items() if v['hashtags']]) is False
