@@ -2,7 +2,7 @@ __doc__ = """
 instatools
 ==========
 A collection of tools to facilitate the acquisition
-and preprocessing of data from the Instagram API
+and preprocessing of data from Instagram API
 """
 
 __author__ = """karolow"""

@@ -8,6 +8,13 @@ import pandas as pd
 
 
 class Posts:
+    """Parse from JSON and preprocess Instagram posts.
+
+    Attributes:
+        posts (dict): Collection of posts obtained from Instagram API.
+
+    """
+
     def __init__(self, posts):
         self.posts = posts
         self.df = None
@@ -41,17 +48,65 @@ class Posts:
 
         return cls(posts)
 
+    @classmethod
+    def _extract_edges_from_json(cls, file_name):
+        with open(file_name, 'r') as file:
+            content = json.load(file)
+
+        all_edges = []
+
+        for edges in content[cls.JSON_FIELD]['recent']['sections']:
+            for edge in edges['layout_content']['medias']:
+                all_edges.append(edge)
+
+        return all_edges
+
+    @classmethod
+    def _extract_post(cls, node):
+
+        id = str(node['media']['pk'])
+        url = f"https://www.instagram.com/p/{node['media']['code']}"
+        timestamp = datetime.fromtimestamp(node['media']['taken_at']).isoformat()
+        user_id = node['media']['user']['pk']
+        user_name = node['media']['user']['username']
+        user_full_name = node['media']['user']['full_name']
+        likes = node['media']['like_count']
+        comments = node['media']['comment_count']
+
+        try:
+            display_url = node['media']['image_versions2']['candidates'][0]['url']
+        except KeyError:
+            display_url = node['media']['carousel_media'][0]['image_versions2']['candidates'][0]['url']
+        try:
+            text = node['media']['caption']['text']
+        except TypeError:
+            text = None
+        try:
+            hashtags = [tag.lower() for tag in re.findall('#[^#\\s]+', text) if tag[1:].isalnum()]
+        except TypeError:
+            hashtags = None
+
+        record = {
+            'url': url,
+            'user_id': user_id,
+            'user_name': user_name,
+            'user_full_name': user_full_name,
+            'timestamp': timestamp,
+            'likes': likes,
+            'comments': comments,
+            'display_url': display_url,
+            'text': text,
+            'hashtags': hashtags
+        }
+
+        return id, record
+
     def _detect_junk_tags(self, hashtags, to_detect):
         return any([tag in hashtags for tag in to_detect if hashtags])
 
     def remove_posts(self, file_path):
-        try:
-            with open(file_path, 'r') as file:
-                junk_hashtags = file.read().replace(' ', '').split(',')
-        except FileNotFoundError:
-            print(f'{file_path} file does not exist')
-        print(junk_hashtags)
-
+        with open(file_path, 'r') as file:
+            junk_hashtags = file.read().replace(' ', '').strip('\n').split(',')
         posts = {id: post for id, post in self.posts.items(
         ) if not self._detect_junk_tags(post['hashtags'], junk_hashtags)}
         return Posts(posts)
@@ -76,7 +131,6 @@ class Posts:
 
     @classmethod
     def _hashtags_to_categories(cls, custom_categories, hashtags):
-
         categories = []
         if custom_categories and hashtags:
             for name, categories_lst in custom_categories.items():
@@ -87,7 +141,6 @@ class Posts:
         return categories if categories else None
 
     def popular_categories(self, category='categories', pct=True):
-
         categories = [
             v['categories'] for k, v in self.posts.items() if v['categories']]
         categories_list = [item for sublist in categories for item in sublist]
@@ -110,95 +163,22 @@ class Posts:
 
 
 class HashtagPosts(Posts):
+    """Parse from JSON and preprocess Instagram posts
+    obtained via the hashtag API endpoint.
 
-    @classmethod
-    def _extract_edges_from_json(cls, file_name):
-        with open(file_name, 'r') as file:
-            content = json.load(file)
+    Attributes:
+        posts (dict): Collection of posts obtained from Instagram API.
+    """
 
-        all_edges = []
-
-        for edges in content['data']['recent']['sections']:
-            for edge in edges['layout_content']['medias']:
-                all_edges.append(edge)
-
-        return all_edges
-
-    @classmethod
-    def _extract_post(cls, node):
-
-        id = node['media']['pk']
-        shortcode = node['media']['code']
-        timestamp = datetime.fromtimestamp(node['media']['taken_at'])
-        owner = node['media']['user']['pk']
-        likes = node['media']['like_count']
-        comments = node['media']['comment_count']
-
-        try:
-            display_url = node['media']['image_versions2']['candidates'][0]['url']
-        except KeyError:
-            display_url = node['media']['carousel_media'][0]['image_versions2']['candidates'][0]['url']
-
-        caption = None
-        text = node['media']['caption'].get('text')
-
-        hashtags = [tag.lower() for tag in re.findall('#[^#\\s]+', text) if tag[1:].isalnum()]
-        hashtags = hashtags if hashtags else None
-
-        record = {
-            'shortcode': shortcode,
-            'owner': owner,
-            'timestamp': timestamp,
-            'likes': likes,
-            'comments': comments,
-            'display_url': display_url,
-            'caption': caption,
-            'text': text,
-            'hashtags': hashtags
-        }
-
-        return id, record
+    JSON_FIELD = 'data'
 
 
 class LocationPosts(Posts):
+    """Parse from JSON and preprocess Instagram posts
+    obtained via the location API endpoint.
 
-    @classmethod
-    def _extract_edges_from_json(cls, file_name):
-        with open(file_name, 'r') as file:
-            content = json.load(file)
+    Attributes:
+        posts (dict): Collection of posts obtained from Instagram API.
+    """
 
-        return content['graphql']['location']['edge_location_to_media']['edges']
-
-    @classmethod
-    def _extract_post(cls, node):
-
-        id = node['node']['id']
-        shortcode = node['node']['shortcode']
-        timestamp = datetime.fromtimestamp(node['node']['taken_at_timestamp'])
-        owner = node['node']['owner']['id']
-        likes = node['node']['edge_liked_by']['count']
-        comments = node['node']['edge_media_to_comment']['count']
-        display_url = node['node']['display_url']
-        caption = node['node'].get('accessibility_caption')
-
-        if node['node']['edge_media_to_caption']['edges']:
-            text = node['node']['edge_media_to_caption']['edges'][0]['node']['text']
-        else:
-            text = ''
-
-        hashtags = [tag.lower() for tag in re.findall('#[^#\\s]+', text) if tag[1:].isalnum()]
-        hashtags = hashtags if hashtags else None
-
-        record = {
-            'shortcode': shortcode,
-            'owner': owner,
-            'timestamp': timestamp,
-            'likes': likes,
-            'comments': comments,
-            'display_url': display_url,
-            'caption': caption,
-            'text': text,
-            'hashtags': hashtags
-        }
-
-        return id, record
+    JSON_FIELD = 'native_location_data'

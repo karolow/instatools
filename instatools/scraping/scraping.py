@@ -54,10 +54,10 @@ class Scraper:
     def extract_posts(self, base_url):
         """Retrieve posts from Instagram API.
 
-        Results are stored in batches of ~70 posts in JSON files.
+        Results are stored in batches of ~60 posts in JSON files.
 
         Args:
-            base_url (str): Full url to the Instagram content,
+            base_url (str): Full url to Instagram content,
                 e.g. 'https://www.instagram.com/explore/tags/jazerorohlik/'
 
         """
@@ -85,9 +85,9 @@ class Scraper:
 
             if '/tags/' in base_url:
                 max_id = response_content['data']['recent'].get('next_max_id')
+
             elif '/locations/' in base_url:
                 max_id = response_content['native_location_data']['recent'].get('next_max_id')
-
             if not max_id or max_id is None:
                 break
 
