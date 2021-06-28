@@ -101,14 +101,21 @@ class Posts:
 
         return id, record
 
-    def _detect_junk_tags(self, hashtags, to_detect):
+    @staticmethod
+    def _detect_junk_hashtags(hashtags, to_detect):
         return any([tag in hashtags for tag in to_detect if hashtags])
 
-    def remove_posts(self, file_path):
+    @staticmethod
+    def _load_junk_hashtags(file_path):
         with open(file_path, 'r') as file:
             junk_hashtags = file.read().replace(' ', '').strip('\n').split(',')
+        return junk_hashtags
+
+    def remove_posts(self, junk_hashtags=None, file_path=None):
+        if file_path:
+            junk_hashtags = self._load_junk_hashtags(file_path)
         posts = {id: post for id, post in self.posts.items(
-        ) if not self._detect_junk_tags(post['hashtags'], junk_hashtags)}
+        ) if not self._detect_junk_hashtags(post['hashtags'], junk_hashtags)}
         return Posts(posts)
 
     def set_custom_categories(self, file_path, name='categories'):
