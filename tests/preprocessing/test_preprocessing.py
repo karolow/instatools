@@ -1,39 +1,49 @@
 from instatools.preprocessing.preprocessing import (
-    extract_edges_from_json,
-    extract_post,
-    json_files_to_dict,
+    HashtagPosts,
+    LocationPosts
 )
 
 
 class ExtractEdgesFromJsonTests:
-
-    def test_for_tags_endpoint(self, tags_endpoint_json_data):
-        raw_file, processed_json = tags_endpoint_json_data
-        result = extract_edges_from_json(raw_file)
+    def test_for_hashtag_endpoint(self, hashtag_endpoint_data):
+        raw_file, processed_json = hashtag_endpoint_data
+        result = HashtagPosts._extract_edges_from_json(raw_file)
         assert result == processed_json
 
-    def test_for_locations_endpoint(self, locations_endpoint_json_data):
-        raw_file, processed_json = locations_endpoint_json_data
-        result = extract_edges_from_json(raw_file)
+    def test_for_location_endpoint(self, location_endpoint_data):
+        raw_file, processed_json = location_endpoint_data
+        result = LocationPosts._extract_edges_from_json(raw_file)
         assert result == processed_json
 
 
 class ExtractPostTests:
 
-    def test_for_tags_endpoint(self, tags_endpoint_node):
-        node, (id, record) = tags_endpoint_node
-        result_id, result_record = extract_post(node)
+    def test_for_hashtag_endpoint(self, hashtag_endpoint_node):
+        node, (id, record) = hashtag_endpoint_node
+        result_id, result_record = HashtagPosts._extract_post(node)
         assert result_id == id and result_record == record
 
-    def test_for_locations_endpoint(self, locations_endpoint_node):
-        node, (id, record) = locations_endpoint_node
-        result_id, result_record = extract_post(node)
+    def test_for_location_endpoint(self, location_endpoint_node):
+        node, (id, record) = location_endpoint_node
+        result_id, result_record = LocationPosts._extract_post(node)
         assert result_id == id and result_record == record
 
 
-class JsonFilesToDictTests:
+class ParseFromMultipleJsonFilesTests:
 
-    def test_multiple_files_to_dict(self, multiple_json_path):
-        path, posts = multiple_json_path
-        result = json_files_to_dict(path)
-        assert result == posts
+    def test_for_hashtag_endpoint(self, multiple_hashtag_json):
+        path, posts = multiple_hashtag_json
+        result = HashtagPosts.from_json_files(path)
+        assert result.posts == posts
+
+    def test_for_location_endpoint(self, multiple_location_json):
+        path, posts = multiple_location_json
+        result = LocationPosts.from_json_files(path)
+        assert result.posts == posts
+
+
+class RemovePostsTests:
+
+    def test_for_hashtag_endpoint(self):
+
+    def test_for_location_endpoint(self)

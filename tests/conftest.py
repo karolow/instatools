@@ -1,46 +1,59 @@
+from datetime import datetime
 import json
+import re
 from pytest import fixture
 
 
-tags_json_path = 'tests/data/raw/api_response_tags_endpoint.json'
-locations_json_path = 'tests/data/raw/api_reposnse_locations_endpoint.json'
-multiple_json_path = 'tests/data/raw/'
-all_posts_path = 'tests/data/processed/extracted_posts.json'
+api_response_hashtag_path = 'tests/data/raw/api_response_hashtag_endpoint.json'
+api_response_location_path = 'tests/data/raw/api_response_location_endpoint.json'
+raw_multiple_files_hashtag_path = 'tests/data/raw_multiple/hashtag'
+raw_multiple_files_loacation_path = 'tests/data/raw_multiple/location'
+processed_hashtag_posts_path = 'tests/data/processed/extracted_posts_hashtag.json'
+processed_location_posts_path = 'tests/data/processed/extracted_posts_location.json'
 
 # HELPER FUNCTIONS
 
 
-def load_data_from_file(path):
+def load_data_from_json_file(path):
     with open(path, 'r', encoding='utf-8') as file:
-        api_response = json.load(file)
-    return api_response
+        data = json.load(file)
+    return data
 
 
 def parse_node(node):
-    id = node['node']['id']
-    shortcode = node['node']['shortcode']
-    timestamp = node['node']['taken_at_timestamp']
-    owner = node['node']['owner']['id']
-    likes = node['node']['edge_liked_by']['count']
-    comments = node['node']['edge_media_to_comment']['count']
-    display_url = node['node']['display_url']
-    caption = node['node'].get('accessibility_caption', '')
+    id = str(node['media']['pk'])
+    url = f"https://www.instagram.com/p/{node['media']['code']}"
+    timestamp = datetime.fromtimestamp(node['media']['taken_at']).isoformat()
+    user_id = node['media']['user']['pk']
+    user_name = node['media']['user']['username']
+    user_full_name = node['media']['user']['full_name']
+    likes = node['media']['like_count']
+    comments = node['media']['comment_count']
 
-    if node['node']['edge_media_to_caption']['edges']:
-        text = node['node']['edge_media_to_caption']['edges'][0]['node']['text']
-    else:
-        text = ''
+    try:
+        display_url = node['media']['image_versions2']['candidates'][0]['url']
+    except KeyError:
+        display_url = node['media']['carousel_media'][0]['image_versions2']['candidates'][0]['url']
+    try:
+        text = node['media']['caption']['text']
+    except TypeError:
+        text = None
+    try:
+        hashtags = [tag.lower() for tag in re.findall('#[^#\\s]+', text) if tag[1:].isalnum()]
+    except TypeError:
+        hashtags = None
 
-    id = id
     record = {
-        'shortcode': shortcode,
-        'owner': owner,
+        'url': url,
+        'user_id': user_id,
+        'user_name': user_name,
+        'user_full_name': user_full_name,
         'timestamp': timestamp,
         'likes': likes,
         'comments': comments,
         'display_url': display_url,
-        'caption': caption,
-        'text': text
+        'text': text,
+        'hashtags': hashtags
     }
 
     return id, record
@@ -49,36 +62,56 @@ def parse_node(node):
 # FIXTURES
 
 @fixture
-def tags_endpoint_json_data(path=tags_json_path):
-    api_response = load_data_from_file(path)
-    edges = api_response['graphql']['hashtag']['edge_hashtag_to_media']['edges']
-    yield path, edges
+def hashtag_endpoint_data(path=api_response_hashtag_path):
+    api_response = load_data_from_json_file(path)
+
+    all_edges = []
+    for edges in api_response['data']['recent']['sections']:
+        for edge in edges['layout_content']['medias']:
+            all_edges.append(edge)
+
+    yield path, all_edges
 
 
 @fixture
-def locations_endpoint_json_data(path=locations_json_path):
-    api_response = load_data_from_file(path)
-    edges = api_response['graphql']['location']['edge_location_to_media']['edges']
-    yield path, edges
+def location_endpoint_data(path=api_response_location_path):
+    api_response = load_data_from_json_file(path)
+
+    all_edges = []
+    for edges in api_response['native_location_data']['recent']['sections']:
+        for edge in edges['layout_content']['medias']:
+            all_edges.append(edge)
+
+    yield path, all_edges
 
 
-@fixture(params=range(0, 10))
-def tags_endpoint_node(request, path=tags_json_path):
-    api_response = load_data_from_file(tags_json_path)
-    node = api_response['graphql']['hashtag']['edge_hashtag_to_media']['edges'][request.param]
+@fixture(params=range(0, 2))
+def hashtag_endpoint_node(request, path=api_response_hashtag_path):
+    api_response = load_data_from_json_file(path)
+    node = api_response['data']['recent']['sections'][0]['layout_content']['medias'][request.param]
     id, record = parse_node(node)
     yield node, (id, record)
 
 
-@fixture(params=range(0, 10))
-def locations_endpoint_node(request, path=locations_json_path):
-    api_response = load_data_from_file(locations_json_path)
-    node = api_response['graphql']['location']['edge_location_to_media']['edges'][request.param]
+@fixture(params=range(0, 2))
+def location_endpoint_node(request, path=api_response_location_path):
+    api_response = load_data_from_json_file(path)
+    node = api_response['native_location_data']['recent']['sections'][0]['layout_content']['medias'][request.param]
     id, record = parse_node(node)
     yield node, (id, record)
 
 
 @fixture
-def multiple_json_path(path=multiple_json_path):
-    posts = load_data_from_file(all_posts_path)
-    yield path, posts
+def multiple_hashtag_json(
+        path_raw=raw_multiple_files_hashtag_path,
+        path_processed=processed_hashtag_posts_path):
+    posts = load_data_from_json_file(path_processed)
+    yield path_raw, posts
+
+
+@fixture
+def multiple_location_json(
+        path_raw=raw_multiple_files_loacation_path,
+        path_processed=processed_location_posts_path):
+    posts = load_data_from_json_file(path_processed)
+    yield path_raw, posts
