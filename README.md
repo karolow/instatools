@@ -141,4 +141,5 @@ p.set_custom_categories(file_path='custom_categories.csv', name='categories')
 ```python
 p.popular_categories(category='categories', pct=True)
 p.popular_hashtags(n=10, pct=False)
+
 ```
