@@ -72,7 +72,6 @@ class Posts:
             path (str): A path to directory with JSON files obtained from API.
 
         """
-
         files = Path(path).glob('**/*.json')
         posts = dict()
 
@@ -119,7 +118,6 @@ class Posts:
             tuple of str and dict: Post id and post content.
 
         """
-
         id = str(node['media']['pk'])
         url = f"https://www.instagram.com/p/{node['media']['code']}"
         timestamp = datetime.fromtimestamp(node['media']['taken_at']).isoformat()

@@ -68,7 +68,6 @@ class Scraper:
                 e.g. 'https://www.instagram.com/explore/tags/medialabkatowice/'
 
         """
-
         Path(self.session_path, 'posts', self._api_endpoint).mkdir(parents=True, exist_ok=True)
         max_id = ''
 
