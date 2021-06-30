@@ -211,7 +211,7 @@ class Posts:
     def set_custom_categories(self, file_path, name='categories'):
         """Assign posts to categories based on existing hashtags.
 
-        Category to hashtags mapping is provided via a CSV file.
+        Category to hashtags mapping is provided via the CSV file.
 
         Note:
             If the df attribute exists, it will be updated with
