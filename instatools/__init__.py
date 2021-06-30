@@ -1,7 +1,7 @@
 __doc__ = """
 instatools
 ==========
-A collection of tools to facilitate the acquisition
+A collection of tools to facilitate acquisition
 and preprocessing of data from Instagram API
 """
 
