@@ -1,6 +1,7 @@
 from collections import Counter
 import csv
 from datetime import datetime
+from dateutil import tz
 import json
 from pathlib import Path
 import re
@@ -120,7 +121,8 @@ class Posts:
         """
         id = str(node['media']['pk'])
         url = f"https://www.instagram.com/p/{node['media']['code']}"
-        timestamp = datetime.fromtimestamp(node['media']['taken_at']).isoformat()
+        timestamp = datetime.fromtimestamp(node['media']['taken_at']).replace(
+            tzinfo=tz.gettz("Europe/Warsaw")).isoformat()
         user_id = node['media']['user']['pk']
         user_name = node['media']['user']['username']
         user_full_name = node['media']['user']['full_name']
