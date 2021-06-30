@@ -1,8 +1,6 @@
 # instatools
 
-A Python package to facilitate acquisition and preprocessing of data from Instagram API. Unlike other similar tools, it is equipped with features to mitigate problems arising from API instability, e.g. exception handling and easy completion of missing data.
-
-It is a high-level tool designed for city researchers facilitating data processes that are usually outsourced to external developers.
+A Python package to facilitate acquisition and preprocessing of data from Instagram API. Unlike other similar tools, it is equipped with features to mitigate problems arising from API instability, e.g. exception handling and easy completion of missing data. It was designed for city researchers who usually outsource similar tasks to external developers.
 
 ### Features
 
