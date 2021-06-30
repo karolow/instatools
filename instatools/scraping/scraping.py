@@ -17,9 +17,16 @@ class Scraper:
     Retrieve posts and images from Instragram API.
 
     Attributes:
-      session_id (str): Obtained from the browser's cookie,
-        user must be logged in with their Instagram account.
-      session_path (str): Directory to store the extracted content.
+        session_id (str): Obtained from the browser's cookie,
+            user must be logged in with their Instagram account.
+        session_path (str): Directory to store the extracted content.
+
+    Methods:
+        set_api_session: Set up the Requests package session
+            to access Instagram API.
+        extract_posts: Retrieve posts from Instagram API.
+        extract_images: Retrieve images from Instagram posts.
+
 
     """
 
@@ -37,8 +44,8 @@ class Scraper:
         Provides authorization between consecutive requests.
 
         Args:
-            timeout (int): In seconds (Default value = 3).
-            max_retries (int): (Default value = 2)
+            timeout (int): Default value = 3.
+            max_retries (int): Default value = 2.
 
         """
         adapter = requests.adapters.HTTPAdapter(max_retries=max_retries)
@@ -58,7 +65,7 @@ class Scraper:
 
         Args:
             base_url (str): Full url to Instagram content,
-                e.g. 'https://www.instagram.com/explore/tags/jazerorohlik/'
+                e.g. 'https://www.instagram.com/explore/tags/medialabkatowice/'
 
         """
 
@@ -94,10 +101,10 @@ class Scraper:
             sleep(2)
 
     def _request_image(self, url, file_name):
-        """Helper method to retrieve an image (jpg) from the Instagram API.
+        """Helper method to retrieve an image (jpg) from Instagram API.
 
         Args:
-            url (str): Path to the image extracted from the Instagram post.
+            url (str): Path to the image extracted from Instagram post.
             file_name (str): Output file name coresponding to the post id.
 
         """
@@ -113,7 +120,7 @@ class Scraper:
             shutil.copyfileobj(response.raw, file)
 
     def extract_images(self, posts):
-        """Retrieve images for the Instagram posts.
+        """Retrieve images from Instagram posts.
 
         Checks recursively for already downloaded images to facilitate
         extraction in batches.
@@ -136,8 +143,7 @@ class Scraper:
 
 
 class HashtagScraper(Scraper):
-    """
-    Retrieve posts and images from Instragram API for selected hashtag.
+    """Retrieve posts and images from Instragram API for a selected hashtag.
 
     Attributes:
         session_id (str): Obtained from the browser's cookie,
@@ -152,8 +158,7 @@ class HashtagScraper(Scraper):
 
 
 class LocationScraper(Scraper):
-    """
-    Retrieve posts and images from Instragram API for selected location.
+    """Retrieve posts and images from Instragram API for a selected location.
 
     Attributes:
         session_id (str): Obtained from the browser's cookie,
