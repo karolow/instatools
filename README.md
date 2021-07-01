@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/karolow/instatools.svg?branch=main)](https://travis-ci.com/karolow/instatools)
+
 # instatools
 
 A Python package to facilitate acquisition and preprocessing of data from Instagram API. Unlike other similar tools, it is equipped with features to mitigate problems arising from API instability, e.g. exception handling and easy completion of missing data. It was designed for city researchers who usually outsource similar tasks to external developers.
