@@ -4,5 +4,6 @@ python:
 install:
  - pip install -e .
  - pip install -r requirements.txt
+ - pip install pytest-cov codecov
 script:
- - pytest -v
+ - pytest -v --cov=instatools
