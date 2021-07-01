@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.com/karolow/instatools.svg?branch=main)](https://travis-ci.com/karolow/instatools)
+[![codecov](https://codecov.io/gh/karolow/instatools/branch/main/graph/badge.svg?token=JQX80JOFPS)](https://codecov.io/gh/karolow/instatools)
 
 # instatools
 
