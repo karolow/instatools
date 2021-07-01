@@ -24,8 +24,7 @@ def load_data_from_json_file(path):
 def parse_node(node):
     id = str(node['media']['pk'])
     url = f"https://www.instagram.com/p/{node['media']['code']}"
-    timestamp = datetime.fromtimestamp(node['media']['taken_at']).replace(
-        tzinfo=tz.gettz("Europe/Warsaw")).isoformat()
+    timestamp = datetime.utcfromtimestamp(node['media']['taken_at']).isoformat()
     user_id = node['media']['user']['pk']
     user_name = node['media']['user']['username']
     user_full_name = node['media']['user']['full_name']
